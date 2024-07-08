@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "566363161463",
+    "project_id": "number-guessing-game-4fd28",
+    "storage_bucket": "number-guessing-game-4fd28.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:566363161463:android:eecc08aaad72b47dca5772",
+        "android_client_info": {
+          "package_name": "com.example.game_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAemtPExCrzYJHajQuFaigCwyg_0zzLhmQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
