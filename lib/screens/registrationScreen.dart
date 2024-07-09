@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:game_app/models/userModel.dart';
 import 'package:game_app/screens/LoginScreen.dart';
+import 'package:game_app/services/userService.dart';
 import 'package:game_app/widgets/myTextField.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -11,12 +13,27 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegistrationScreen> {
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _ConfirmPasswordController =
+  final TextEditingController _confirmPasswordController =
       TextEditingController();
-  final TextEditingController _FirstNameController = TextEditingController();
-  final TextEditingController _LastNameController = TextEditingController();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final userService = UserService();
+
+  void saveUser(User user) async {
+    try {
+      await userService.saveUser(user);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('User saved successfully')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${e.toString()}')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,94 +46,150 @@ class _RegisterPageState extends State<RegistrationScreen> {
             height: MediaQuery.of(context).size.height -
                 kToolbarHeight -
                 MediaQuery.of(context).padding.top,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  'SignUp Page',
-                  style: GoogleFonts.aBeeZee(
-                    color: Colors.white,
-                    fontSize: 35,
-                    fontWeight: FontWeight.bold,
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'SignUp Page',
+                    style: GoogleFonts.aBeeZee(
+                      color: Colors.white,
+                      fontSize: 35,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                SizedBox(height: 20),
-                MyTextField(
-                  controller: _FirstNameController,
-                  labelText: 'First Name',
-                  obscureText: false,
-                ),
-                SizedBox(height: 30),
-                MyTextField(
-                  controller: _LastNameController,
-                  labelText: 'Last Name',
-                  obscureText: false,
-                ),
-                SizedBox(height: 20),
-                MyTextField(
-                  controller: _usernameController,
-                  labelText: 'User Name',
-                  obscureText: false,
-                ),
-                SizedBox(height: 20),
-                MyTextField(
-                  controller: _passwordController,
-                  labelText: 'password',
-                  obscureText: true,
-                ),
-                SizedBox(height: 20),
-                MyTextField(
-                  controller: _ConfirmPasswordController,
-                  labelText: 'Confirm Password',
-                  obscureText: true,
-                ),
-                SizedBox(height: 30),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => LoginPage()));
+                  SizedBox(height: 20),
+                  MyTextField(
+                    controller: _firstNameController,
+                    labelText: 'First Name',
+                    obscureText: false,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your first name';
+                      }
+                      return null;
                     },
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: Colors.blue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  ),
+                  SizedBox(height: 30),
+                  MyTextField(
+                    controller: _lastNameController,
+                    labelText: 'Last Name',
+                    obscureText: false,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your last name';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 20),
+                  MyTextField(
+                    controller: _usernameController,
+                    labelText: 'Username',
+                    obscureText: false,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your username';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 20),
+                  MyTextField(
+                    controller: _passwordController,
+                    labelText: 'Password',
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your password';
+                      }
+                      if (value.length < 6) {
+                        return 'Password must be at least 6 characters long';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 20),
+                  MyTextField(
+                    controller: _confirmPasswordController,
+                    labelText: 'Confirm Password',
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please confirm your password';
+                      }
+                      if (value != _passwordController.text) {
+                        return 'Passwords do not match';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 30),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        if (_formKey.currentState!.validate()) {
+                          try {
+                            saveUser(User(
+                              id: _usernameController.text,
+                              firstName: _firstNameController.text,
+                              lastName: _lastNameController.text,
+                              userName: _usernameController.text,
+                              password: _passwordController.text,
+                            ));
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error: ${e.toString()}')),
+                            );
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: Colors.blue,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        'Register',
+                        style: TextStyle(fontSize: 18, color: Colors.white),
                       ),
                     ),
-                    child: Text(
-                      'Register',
-                      style: TextStyle(fontSize: 18, color: Colors.white),
-                    ),
                   ),
-                ),
-                SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Have an account?',
-                      style: TextStyle(color: Colors.white, fontSize: 16),
-                    ),
-                    TextButton(
+                  SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Have an account?',
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                      TextButton(
                         onPressed: () {
                           Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => LoginPage()));
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => LoginPage(),
+                            ),
+                          );
                         },
                         child: Text(
                           'Login',
                           style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold),
-                        ))
-                  ],
-                )
-              ],
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                ],
+              ),
             ),
           ),
         ),

@@ -4,11 +4,13 @@ class MyTextField extends StatefulWidget {
   final TextEditingController controller;
   final String labelText;
   final bool obscureText;
+  final String? Function(String?)? validator;
 
   MyTextField({
     required this.controller,
     required this.labelText,
     required this.obscureText,
+    this.validator,
   });
 
   @override
@@ -26,7 +28,7 @@ class _MyTextFieldState extends State<MyTextField> {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return TextFormField(
       controller: widget.controller,
       decoration: InputDecoration(
         labelText: widget.labelText,
@@ -48,6 +50,7 @@ class _MyTextFieldState extends State<MyTextField> {
             : null,
       ),
       obscureText: widget.obscureText ? showPassword : false,
+      validator: widget.validator,
     );
   }
 }

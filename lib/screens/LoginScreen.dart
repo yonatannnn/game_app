@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:game_app/screens/registrationScreen.dart';
+import 'package:game_app/services/authService.dart';
+import 'package:game_app/services/userService.dart';
 import 'package:game_app/widgets/myTextField.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({Key? key});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -13,6 +17,34 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
+  final userService = UserService();
+  final authService = AuthService();
+
+  Future<bool> checkUser(
+      String username, String password, BuildContext context) async {
+    try {
+      final user = await userService.findUserById(username);
+      if (user?.password == password) {
+        return true;
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Incorrect password')),
+        );
+        return false;
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Username not found!')),
+      );
+      return false;
+    }
+  }
+
+  Future<void> saveUserData(String username) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('username', username);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +85,26 @@ class _LoginPageState extends State<LoginPage> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      bool isValidUser = await checkUser(
+                        _usernameController.text,
+                        _passwordController.text,
+                        context,
+                      );
+
+                      if (isValidUser) {
+                        try {
+                          await authService.signInAnonymously();
+                          await saveUserData(_usernameController.text);
+                          context.go('/home');
+                        } catch (e) {
+                          print(e.toString());
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error: ${e.toString()}')),
+                          );
+                        }
+                      }
+                    },
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 16),
                       backgroundColor: Colors.blue,
@@ -76,19 +127,22 @@ class _LoginPageState extends State<LoginPage> {
                       style: TextStyle(color: Colors.white, fontSize: 16),
                     ),
                     TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => RegistrationScreen()));
-                        },
-                        child: Text(
-                          'Register',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold),
-                        ))
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => RegistrationScreen(),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'Register',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    )
                   ],
                 )
               ],
