@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
       initialLocation: '${initialLocation}',
       routes: [
         GoRoute(
-          path: '/choose',
+          path: '/login',
           builder: (context, state) => LoginPage(),
         ),
         GoRoute(

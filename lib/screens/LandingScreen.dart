@@ -4,6 +4,7 @@ import 'package:game_app/screens/SingleGameScreen.dart';
 import 'package:game_app/screens/homeScreen.dart';
 import 'package:game_app/screens/offlineSinglePlayer.dart';
 import 'package:game_app/services/singleGame.dart';
+import 'package:game_app/widgets/drawer.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
@@ -18,7 +19,7 @@ class Landingscreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Game',
+          'Number Guessing Game',
           style: GoogleFonts.aBeeZee(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -30,6 +31,7 @@ class Landingscreen extends StatelessWidget {
         iconTheme: IconThemeData(color: Colors.white),
       ),
       backgroundColor: Colors.black,
+      drawer: CustomDrawer(),
       body: Center(
         child: Container(
           padding: EdgeInsets.all(20.0),
