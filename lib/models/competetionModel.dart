@@ -1,7 +1,7 @@
-class Competetion {
+class Competition {
   Map<String, dynamic> rank;
 
-  Competetion({required this.rank});
+  Competition({required this.rank});
 
   Map<String, dynamic> toMap() {
     return {
@@ -9,8 +9,8 @@ class Competetion {
     };
   }
 
-  factory Competetion.fromFirestore(Map<String, dynamic> firestoreData) {
-    return Competetion(
+  factory Competition.fromFirestore(Map<String, dynamic> firestoreData) {
+    return Competition(
       rank: firestoreData['rank'] as Map<String, dynamic>,
     );
   }

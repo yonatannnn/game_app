@@ -1,8 +1,8 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:game_app/models/singleGame.dart';
 import 'package:game_app/services/singleGame.dart';
+import 'package:game_app/services/competitionService.dart';
 import 'package:game_app/widgets/gameTrial.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SinglePlayerGameScreen extends StatelessWidget {
   final SingleGame game;
   final SingleGameService _gameService = SingleGameService();
+  final CompetitionService _competitionService = CompetitionService();
   final TextEditingController _guessController = TextEditingController();
 
   SinglePlayerGameScreen({required this.game});
@@ -119,6 +120,7 @@ class SinglePlayerGameScreen extends StatelessWidget {
   }
 
   int _calculateCorrectNumbers(String trialNumber, String targetNumber) {
+    print('trialNumber = $trialNumber targetNumber = $targetNumber');
     int correctNumbers = 0;
     for (int i = 0; i < 5; i++) {
       if (targetNumber.contains(trialNumber[i])) {
@@ -131,6 +133,7 @@ class SinglePlayerGameScreen extends StatelessWidget {
 
   int _calculateCorrectlyPlacedNumbers(
       String trialNumber, String targetNumber) {
+    print('trialNumber = $trialNumber targetNumber = $targetNumber');
     int correctlyPlacedNumbers = 0;
 
     for (int i = 0; i < 5; i++) {
@@ -168,14 +171,17 @@ class SinglePlayerGameScreen extends StatelessWidget {
             content: Text('Failed to submit guess. Please try again later.')),
       );
     }
-
-    bool endGame = checkEndGame(
-        _calculateCorrectNumbers(guess, game.targetNumber),
-        _calculateCorrectlyPlacedNumbers(guess, game.targetNumber));
+    int num1 = _calculateCorrectNumbers(guess, updatedGame.targetNumber);
+    int num2 =
+        _calculateCorrectlyPlacedNumbers(guess, updatedGame.targetNumber);
+    print('num1 = $num1 num2 = $num2');
+    bool endGame = checkEndGame(num1, num2);
 
     if (endGame) {
       String ID = game.gameId;
       await _gameService.endGame(game.gameId, updatedTrials);
+      await _competitionService.saveCompetitionData(
+          game.gameId, updatedTrials.length);
     }
   }
 

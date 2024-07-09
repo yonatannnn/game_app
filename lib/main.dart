@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:game_app/firebase_options.dart';
 import 'package:game_app/models/gameModel.dart';
+import 'package:game_app/screens/GlobalRankScreen.dart';
 import 'package:game_app/screens/LandingScreen.dart';
 import 'package:game_app/screens/gameScreen.dart';
 import 'package:go_router/go_router.dart';
@@ -22,7 +23,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final initialLocation =
-        FirebaseAuth.instance.currentUser != null ? '/landing' : '/login';
+        FirebaseAuth.instance.currentUser != null ? '/global' : '/login';
 
     final GoRouter _router = GoRouter(
       initialLocation: '${initialLocation}',
@@ -30,6 +31,10 @@ class MyApp extends StatelessWidget {
         GoRoute(
           path: '/choose',
           builder: (context, state) => LoginPage(),
+        ),
+        GoRoute(
+          path: '/global',
+          builder: (context, state) => GlobalRankScreen(),
         ),
         GoRoute(
           path: '/landing',

@@ -28,16 +28,10 @@ class SingleGameService {
   }
 
   Future<void> endGame(String gameId, List<String> trials) async {
-    await FirebaseFirestore.instance.runTransaction((transaction) async {
-      DocumentSnapshot gameDoc = await _gamesCollection.doc(gameId).get();
-      if (!gameDoc.exists) {
-        throw Exception('Game does not exist!');
-      }
-
-      transaction.update(_gamesCollection.doc(gameId), {
-        'trials': trials,
-        'status': 'Ended',
-      });
+    print('Called');
+    await _gamesCollection.doc(gameId).update({
+      'trials': trials,
+      'status': 'Ended',
     });
   }
 
