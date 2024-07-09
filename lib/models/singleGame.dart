@@ -1,42 +1,34 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class Game {
+class SingleGame {
   String gameId;
-  String turn;
   String targetNumber;
   List<String> trials = [];
-  String winner;
-  String loser;
+  String status;
 
-  Game({
+  SingleGame({
+    required this.status,
     required this.gameId,
-    required this.turn,
     required this.targetNumber,
     required this.trials,
-    required this.winner,
-    required this.loser,
   });
 
   Map<String, dynamic> toMap() {
     return {
+      'status': status,
       'gameId': gameId,
-      'turn': turn,
       'targetNumber': targetNumber,
       'trials': trials,
-      'winner': winner,
-      'loser': loser,
     };
   }
 
-  static Game fromFirestore(DocumentSnapshot doc) {
+  static SingleGame fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    return Game(
+    return SingleGame(
+      status: data['status'] ?? '',
       gameId: data['gameId'] ?? '',
-      turn: data['turn'] ?? '',
       targetNumber: data['targetNumber'] ?? '',
       trials: List<String>.from(data['trials'] ?? []),
-      winner: data['winner'] ?? '',
-      loser: data['loser'] ?? '',
     );
   }
 }

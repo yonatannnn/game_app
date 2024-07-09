@@ -1,40 +1,47 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
-import 'package:game_app/models/gameModel.dart';
-import 'package:game_app/services/gameService.dart';
-import 'package:game_app/services/requestService.dart';
+import 'package:game_app/models/singleGame.dart';
+import 'package:game_app/services/singleGame.dart';
 import 'package:game_app/widgets/gameTrial.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class GameScreen extends StatelessWidget {
-  final Game game;
-  final GameService _gameService = GameService();
+class SinglePlayerGameScreen extends StatelessWidget {
+  final SingleGame game;
+  final SingleGameService _gameService = SingleGameService();
   final TextEditingController _guessController = TextEditingController();
 
-  GameScreen({required this.game});
+  SinglePlayerGameScreen({required this.game});
 
   @override
   Widget build(BuildContext context) {
-    String realNumber = game.targetNumber;
-    List<String> player = game.gameId.split("-");
-    List<String> players = [player[0], player[1]];
+    String targetNumber = game.targetNumber;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Game',
+          'Single Player Game',
           style: GoogleFonts.aBeeZee(
             fontSize: 20,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
+        actions: [
+          IconButton(
+              onPressed: () async {
+                await _gameService.restart(
+                    game.gameId, _generateTargetNumber());
+              },
+              icon: Icon(Icons.restart_alt_rounded))
+        ],
         backgroundColor: Colors.blue,
         centerTitle: true,
         iconTheme: IconThemeData(color: Colors.white),
       ),
       backgroundColor: Colors.black,
-      body: StreamBuilder<Game>(
+      body: StreamBuilder<SingleGame>(
         stream: _gameService.streamGameById(game.gameId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -46,11 +53,11 @@ class GameScreen extends StatelessWidget {
           }
 
           if (!snapshot.hasData) {
-            return Center(child: Text('Game not found'));
+            return Center(child: Text('Error'));
           }
 
-          Game updatedGame = snapshot.data!;
-          String targetNumber = realNumber;
+          SingleGame updatedGame = snapshot.data!;
+          String targetNumber = updatedGame.targetNumber;
           return Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -75,7 +82,7 @@ class GameScreen extends StatelessWidget {
                   },
                 ),
               ),
-              if (updatedGame.winner == '-') ...[
+              if (updatedGame.status == '-') ...[
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: TextField(
@@ -92,17 +99,17 @@ class GameScreen extends StatelessWidget {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    _submitGuess(
-                        context, _guessController.text, players, updatedGame);
+                    _submitGuess(context, _guessController.text, updatedGame);
                   },
                   child: Text('Submit Guess'),
                 ),
               ],
-              if (updatedGame.winner != '-')
-                Text('The winner is ${updatedGame.winner}',
+              if (updatedGame.status != '-')
+                Text(
+                    'You have finished the game with ${updatedGame.trials.length} trials.',
                     style: GoogleFonts.aBeeZee(
                         fontWeight: FontWeight.bold,
-                        fontSize: 25,
+                        fontSize: 15,
                         color: Colors.white))
             ],
           );
@@ -135,16 +142,10 @@ class GameScreen extends StatelessWidget {
     return correctlyPlacedNumbers;
   }
 
-  void _submitGuess(BuildContext context, String guess, List<String> players,
-      Game updatedGame) async {
+  void _submitGuess(
+      BuildContext context, String guess, SingleGame updatedGame) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String currentUser = prefs.getString('username') ?? '';
-    if (updatedGame.turn != currentUser) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('It is not your turn to guess!')),
-      );
-      return;
-    }
 
     if (guess.length != 5 || int.tryParse(guess) == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -158,12 +159,8 @@ class GameScreen extends StatelessWidget {
     List<String> updatedTrials = List.from(updatedGame.trials);
     updatedTrials.add(formattedTrial);
 
-    String nextTurn =
-        (updatedGame.turn == players[0]) ? players[1] : players[0];
-
     try {
-      await _gameService.updateTrialsAndTurn(
-          updatedGame.gameId, updatedTrials, nextTurn);
+      await _gameService.updateTrialsAndTurn(updatedGame.gameId, updatedTrials);
       _guessController.clear();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -177,18 +174,23 @@ class GameScreen extends StatelessWidget {
         _calculateCorrectlyPlacedNumbers(guess, game.targetNumber));
 
     if (endGame) {
-      List<String> IDs = game.gameId.split('-');
-      IDs.removeLast();
-      IDs.sort();
-      String ID = IDs.join("-");
-      String loser = currentUser == players[0] ? players[1] : players[0];
-      await _gameService.updateWinnerAndEndGame(
-          game.gameId, currentUser, loser);
-      await RequestService().updateRequestStatus(ID, 'Ended');
+      String ID = game.gameId;
+      await _gameService.endGame(game.gameId, updatedTrials);
     }
   }
 
-  bool checkEndGame(num1, num2) {
+  bool checkEndGame(int num1, int num2) {
     return (num1 == 5 && num2 == 5);
+  }
+
+  String _generateTargetNumber() {
+    Random random = Random();
+    Set<int> digits = {};
+
+    while (digits.length < 5) {
+      digits.add(random.nextInt(10));
+    }
+
+    return digits.join('');
   }
 }

@@ -13,7 +13,7 @@ class SingleRequestWidget extends StatelessWidget {
   final bool isSender;
   final RequestService _requestService = RequestService();
   final GameService _gameService = GameService();
-  Game? _createdGame; // Store the created game
+  Game? _createdGame;
 
   SingleRequestWidget({required this.isSender, required this.request});
 
@@ -31,6 +31,9 @@ class SingleRequestWidget extends StatelessWidget {
     } else if (request.status == 'Declined') {
       statusColor = Colors.red;
       statusText = 'Declined';
+    } else if (request.status == 'Ended') {
+      statusColor = Colors.amber;
+      statusText = 'Ended';
     } else {
       statusColor = Colors.grey;
       statusText = 'Unknown status';
@@ -38,7 +41,7 @@ class SingleRequestWidget extends StatelessWidget {
 
     return GestureDetector(
       onTap: () async {
-        if (request.status == 'Accepted') {
+        if (request.status == 'Accepted' || request.status == 'Ended') {
           Game? fetchedGame = await _fetchGameFromBackend();
           if (fetchedGame != null) {
             Navigator.push(
@@ -52,6 +55,12 @@ class SingleRequestWidget extends StatelessWidget {
               SnackBar(content: Text('No game found for the request')),
             );
           }
+        } else if (request.status == '-' && isSender) {
+          print('oh');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('Wait until the opponent accepts the request')),
+          );
         }
       },
       child: Container(

@@ -13,8 +13,27 @@ class GameService {
     await _gamesCollection.doc(gameId).delete();
   }
 
-  Future<void> updateTrials(String gameId, List<int> trials) async {
-    await _gamesCollection.doc(gameId).update({'trials': trials});
+  Future<void> updateTrialsAndTurn(
+      String gameId, List<String> trials, String turn) async {
+    await FirebaseFirestore.instance.runTransaction((transaction) async {
+      DocumentSnapshot gameDoc = await _gamesCollection.doc(gameId).get();
+      if (!gameDoc.exists) {
+        throw Exception('Game does not exist!');
+      }
+
+      transaction.update(_gamesCollection.doc(gameId), {
+        'trials': trials,
+        'turn': turn,
+      });
+    });
+  }
+
+  Future<void> updateWinnerAndEndGame(
+      String gameId, String winner, String loser) async {
+    await _gamesCollection.doc(gameId).update({
+      'winner': winner,
+      'loser': loser,
+    });
   }
 
   Stream<List<Game>> fetchGames() {
@@ -26,8 +45,7 @@ class GameService {
   }
 
   Future<Game?> getGameById(String gameId) async {
-    var gameDoc =
-        await FirebaseFirestore.instance.collection('Games').doc(gameId).get();
+    var gameDoc = await _gamesCollection.doc(gameId).get();
 
     if (gameDoc.exists) {
       return Game.fromFirestore(gameDoc);
@@ -36,4 +54,9 @@ class GameService {
     }
   }
 
+  Stream<Game> streamGameById(String gameId) {
+    return _gamesCollection.doc(gameId).snapshots().map((doc) {
+      return Game.fromFirestore(doc);
+    });
+  }
 }
