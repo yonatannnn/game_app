@@ -180,8 +180,7 @@ class SinglePlayerGameScreen extends StatelessWidget {
     if (endGame) {
       String ID = game.gameId;
       await _gameService.endGame(game.gameId, updatedTrials);
-      await _competitionService.saveCompetitionData(
-          game.gameId, updatedTrials.length);
+      await _competitionService.saveCompetitionData(game.gameId, updatedTrials.length);
     }
   }
 

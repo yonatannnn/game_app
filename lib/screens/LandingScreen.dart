@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:game_app/models/singleGame.dart';
 import 'package:game_app/screens/SingleGameScreen.dart';
 import 'package:game_app/screens/homeScreen.dart';
+import 'package:game_app/screens/offlineSinglePlayer.dart';
 import 'package:game_app/services/singleGame.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -41,7 +42,9 @@ class Landingscreen extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => HomeScreen()),
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              SinglePlayerOfflineGameScreen()),
                     );
                   },
                   child: Text('Single Player Offline'),

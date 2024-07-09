@@ -28,9 +28,10 @@ class GameTrial extends StatelessWidget {
         } else {
           final username = snapshot.data!;
 
-          final user = trialNumber.split("_")[0];
-          final number = trialNumber.split("_")[1];
+          final user = trialNumber.split('_')[0];
+          final number = trialNumber.split('_')[1];
           final isCurrentUser = user == username;
+          print('userrrr ${user}   username  $username');
           double halfWidth = MediaQuery.of(context).size.width / 2;
 
           return Container(

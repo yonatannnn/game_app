@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final initialLocation =
-        FirebaseAuth.instance.currentUser != null ? '/global' : '/login';
+        FirebaseAuth.instance.currentUser != null ? '/landing' : '/login';
 
     final GoRouter _router = GoRouter(
       initialLocation: '${initialLocation}',
