@@ -5,7 +5,6 @@ import 'package:game_app/screens/gameScreen.dart';
 import 'package:game_app/services/requestService.dart';
 import 'package:game_app/services/gameService.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:go_router/go_router.dart';
 import 'dart:math';
 
 class SingleRequestWidget extends StatelessWidget {
@@ -41,13 +40,30 @@ class SingleRequestWidget extends StatelessWidget {
 
     return GestureDetector(
       onTap: () async {
-        if (request.status == 'Accepted' || request.status == 'Ended') {
+        if (isSender &&
+            (request.status == 'Accepted' || request.status == 'Ended')) {
+          Game? fetchedGame = await _fetchGameFromBackend();
+          if (fetchedGame != null && fetchedGame.targetNumber2 == '-') {
+            await _promptAndHandleTargetNumber(context, fetchedGame);
+          } else if (fetchedGame != null) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => GameScreen(game: fetchedGame, requestSender: request.senderId),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('No game found for the request')),
+            );
+          }
+        } else if (request.status == 'Accepted' || request.status == 'Ended') {
           Game? fetchedGame = await _fetchGameFromBackend();
           if (fetchedGame != null) {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => GameScreen(game: fetchedGame),
+                builder: (context) => GameScreen(game: fetchedGame , requestSender: request.senderId),
               ),
             );
           } else {
@@ -56,7 +72,6 @@ class SingleRequestWidget extends StatelessWidget {
             );
           }
         } else if (request.status == '-' && isSender) {
-          print('oh');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: Text('Wait until the opponent accepts the request')),
@@ -112,17 +127,137 @@ class SingleRequestWidget extends StatelessWidget {
   }
 
   void _handleAccept(BuildContext context) async {
-    try {
-      await _requestService.updateRequestStatus(request.id, 'Accepted');
-      _createdGame = await _createGame();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Request accepted and game created')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error accepting request: $e')),
-      );
-    }
+    TextEditingController _numberController = TextEditingController();
+
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Enter a 5-digit Number'),
+          content: TextField(
+            controller: _numberController,
+            keyboardType: TextInputType.number,
+            maxLength: 5,
+            decoration: InputDecoration(
+              hintText: 'They must be unique!',
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            ElevatedButton(
+              child: Text('Submit'),
+              onPressed: () async {
+                String inputNumber = _numberController.text.trim();
+                if (inputNumber.length == 5 &&
+                    int.tryParse(inputNumber) != null &&
+                    _checkUniqueDigits(inputNumber)) {
+                  try {
+                    await _requestService.updateRequestStatus(
+                        request.id, 'Accepted');
+                    String format = '${request.receiverId}_${inputNumber}';
+                    _createdGame = await _createGame(format);
+                    Navigator.of(context).pop();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => GameScreen(
+                            game: _createdGame!,
+                            requestSender: request.senderId),
+                      ),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error accepting request: $e')),
+                    );
+                  }
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text(
+                            'Please enter a valid 5-digit number with unique digits')),
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _promptAndHandleTargetNumber(
+      BuildContext context, Game fetchedGame) async {
+    TextEditingController _numberController = TextEditingController();
+
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Enter a 5-digit Number'),
+          content: TextField(
+            controller: _numberController,
+            keyboardType: TextInputType.number,
+            maxLength: 5,
+            decoration: InputDecoration(
+              hintText: 'They must be unipue',
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            ElevatedButton(
+              child: Text('Submit'),
+              onPressed: () async {
+                String inputNumber = _numberController.text.trim();
+                if (inputNumber.length == 5 &&
+                    int.tryParse(inputNumber) != null &&
+                    _checkUniqueDigits(inputNumber)) {
+                  try {
+                    fetchedGame.targetNumber2 =
+                        '${request.senderId}_${inputNumber}';
+                    await _gameService.saveGame(fetchedGame);
+                    Navigator.of(context).pop();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => GameScreen(
+                            game: fetchedGame, requestSender: request.senderId),
+                      ),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error updating game: $e')),
+                    );
+                  }
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text(
+                            'Please enter a valid 5-digit number with unique digits')),
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  bool _checkUniqueDigits(String number) {
+    List<String> digits = number.split('');
+
+    Set<String> uniqueDigits = digits.toSet();
+    return uniqueDigits.length == 5;
   }
 
   void _handleDecline(BuildContext context) async {
@@ -138,17 +273,18 @@ class SingleRequestWidget extends StatelessWidget {
     }
   }
 
-  Future<Game> _createGame() async {
+  Future<Game> _createGame(String inputNumber) async {
     String gameId = '${request.id}-${request.requestNumber}';
-    String targetNumber = _generateTargetNumber();
 
     Game game = Game(
       gameId: gameId,
       turn: request.senderId,
-      targetNumber: targetNumber,
+      targetNumber1: inputNumber,
+      targetNumber2: '-',
       trials: [],
       winner: '-',
       loser: '-',
+      chat: [],
     );
 
     await _gameService.saveGame(game);
@@ -158,7 +294,6 @@ class SingleRequestWidget extends StatelessWidget {
   Future<Game?> _fetchGameFromBackend() async {
     try {
       String gameId = '${request.id}-${request.requestNumber}';
-      print(gameId);
       Game? game = await _gameService.getGameById(gameId);
       return game;
     } catch (e) {

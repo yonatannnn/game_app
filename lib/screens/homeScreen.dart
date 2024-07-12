@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:game_app/models/requestModel.dart';
+import 'package:game_app/models/userModel.dart';
 import 'package:game_app/services/authService.dart';
 import 'package:game_app/services/requestService.dart';
+import 'package:game_app/services/userService.dart';
+import 'package:game_app/widgets/drawer.dart';
 import 'package:game_app/widgets/myTextField.dart';
 import 'package:game_app/widgets/receivedRequestList.dart';
 import 'package:game_app/widgets/requestLists.dart';
@@ -55,6 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         backgroundColor: Colors.blue,
         centerTitle: true,
+        iconTheme: IconThemeData(color: Colors.white),
         actions: [
           IconButton(
             icon: Icon(
@@ -157,6 +161,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _sendRequest() async {
+    final _userService = UserService();
+
     String receiverUsername = _receiverController.text.trim();
     if (receiverUsername.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -172,15 +178,24 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
+    User? userExists =
+        await _userService.findUserById(receiverUsername.toLowerCase());
+    if (userExists == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Username does not exist')),
+      );
+      return;
+    }
+
     try {
-      List<String> UserName = [_username, receiverUsername];
+      List<String> UserName = [_username, receiverUsername.toLowerCase()];
       UserName.sort();
       String ID = UserName.join("-");
       RequestModel request = RequestModel(
         date: DateTime.now(),
         id: '$ID',
         senderId: _username,
-        receiverId: receiverUsername,
+        receiverId: receiverUsername.toLowerCase(),
         requestNumber: 1,
         status: '-',
       );

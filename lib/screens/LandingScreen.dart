@@ -49,7 +49,10 @@ class Landingscreen extends StatelessWidget {
                               SinglePlayerOfflineGameScreen()),
                     );
                   },
-                  child: Text('Single Player Offline'),
+                  child: Text(
+                    'Single Player Offline',
+                    style: GoogleFonts.aBeeZee(),
+                  ),
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.symmetric(vertical: 20),
                     backgroundColor: Colors.blue,
@@ -107,7 +110,10 @@ class Landingscreen extends StatelessWidget {
                       );
                     }
                   },
-                  child: Text('Single Player Online'),
+                  child: Text(
+                    'Single Player Online',
+                    style: GoogleFonts.aBeeZee(),
+                  ),
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.symmetric(vertical: 20),
                     backgroundColor: Colors.blue,
@@ -126,7 +132,10 @@ class Landingscreen extends StatelessWidget {
                       MaterialPageRoute(builder: (context) => HomeScreen()),
                     );
                   },
-                  child: Text('Multi Player'),
+                  child: Text(
+                    'Two Players',
+                    style: GoogleFonts.aBeeZee(),
+                  ),
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.symmetric(vertical: 20),
                     backgroundColor: Colors.blue,

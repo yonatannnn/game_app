@@ -67,7 +67,8 @@ class SinglePlayerGameScreen extends StatelessWidget {
                 child: ListView.builder(
                   itemCount: updatedGame.trials.length,
                   itemBuilder: (context, index) {
-                    String trialNumber = updatedGame.trials[index];
+                    String trialNumber = updatedGame
+                        .trials[updatedGame.trials.length - 1 - index];
                     int correctNumbers = _calculateCorrectNumbers(
                         trialNumber.split('_')[1], targetNumber);
                     int correctlyPlacedNumbers =
@@ -101,6 +102,7 @@ class SinglePlayerGameScreen extends StatelessWidget {
                 ElevatedButton(
                   onPressed: () {
                     _submitGuess(context, _guessController.text, updatedGame);
+                    FocusScope.of(context).unfocus();
                   },
                   child: Text('Submit Guess'),
                 ),
@@ -180,7 +182,8 @@ class SinglePlayerGameScreen extends StatelessWidget {
     if (endGame) {
       String ID = game.gameId;
       await _gameService.endGame(game.gameId, updatedTrials);
-      await _competitionService.saveCompetitionData(game.gameId, updatedTrials.length);
+      await _competitionService.saveCompetitionData(
+          game.gameId, updatedTrials.length);
     }
   }
 

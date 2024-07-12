@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:game_app/screens/AboutScreen.dart';
+import 'package:game_app/screens/GlobalRankScreen.dart';
+import 'package:game_app/screens/LandingScreen.dart';
+import 'package:game_app/screens/descriptionPage.dart';
+import 'package:game_app/screens/gamesScreen.dart';
+import 'package:game_app/screens/usersScreen.dart';
 import 'package:game_app/services/authService.dart';
 import 'package:game_app/services/userService.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -31,55 +36,91 @@ class CustomDrawer extends StatelessWidget {
             child: ListView(
               padding: EdgeInsets.zero,
               children: <Widget>[
-                UserAccountsDrawerHeader(
-                  accountName: FutureBuilder<String>(
-                    future: _loadUserName(username),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Text('Loading...');
-                      } else if (snapshot.hasError) {
-                        return Text('Error');
-                      } else {
-                        final String userName = snapshot.data ?? 'Unknown';
-                        return Text(userName);
-                      }
-                    },
-                  ),
-                  currentAccountPicture: CircleAvatar(
-                    backgroundColor: Colors.white,
-                    child: Text(
-                      username.isNotEmpty
-                          ? username.substring(0, 2).toUpperCase()
-                          : '',
-                      style: TextStyle(fontSize: 40.0),
+                DrawerHeader(
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    image: DecorationImage(
+                      image: AssetImage('assets/secretNumbers.png'),
+                      fit: BoxFit.cover,
                     ),
                   ),
-                  decoration: BoxDecoration(
-                    color: Colors.blue,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(height: 20),
+                      Expanded(child: Container()),
+                      FutureBuilder<String>(
+                        future: _loadUserName(username),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return Text(
+                              'Loading...',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                              ),
+                            );
+                          } else if (snapshot.hasError) {
+                            return Text(
+                              'Error',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                              ),
+                            );
+                          } else {
+                            final String userName = snapshot.data ?? 'Unknown';
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16.0),
+                              child: Text(
+                                userName,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ],
                   ),
-                  accountEmail: null,
                 ),
                 ListTile(
                   leading: Icon(Icons.home),
                   title: Text('Home'),
                   onTap: () {
-                    // Navigate to home screen
-                    Navigator.pop(context); // Close the drawer
-                    // Add your navigation logic here
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.account_circle),
-                  title: Text('Profile'),
-                  onTap: () {
-                    // Navigate to profile screen
-                    Navigator.pop(context); // Close the drawer
-                    // Add your navigation logic here
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => Landingscreen()));
                   },
                 ),
                 Divider(),
                 ListTile(
-                  leading: Icon(Icons.settings),
+                  leading: Icon(Icons.arrow_back),
+                  title: Text('Global Rank'),
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => GlobalRankScreen()));
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.description),
+                  title: Text('Description'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => DescriptionPage()),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.album_sharp),
                   title: Text('About'),
                   onTap: () {
                     Navigator.push(
@@ -95,6 +136,28 @@ class CustomDrawer extends StatelessWidget {
                     AuthService().signOutWithConfirmation(context);
                   },
                 ),
+                if (username == 'yonatan')
+                  ListTile(
+                    leading: Icon(Icons.man),
+                    title: Text('Users'),
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => UsersScreen()));
+                    },
+                  ),
+                if (username == 'yonatan')
+                  ListTile(
+                    leading: Icon(Icons.games),
+                    title: Text('Games'),
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => GamesScreen()));
+                    },
+                  ),
               ],
             ),
           );

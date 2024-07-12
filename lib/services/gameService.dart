@@ -28,6 +28,17 @@ class GameService {
     });
   }
 
+  Future<void> updateChat(String gameId, List<String> chat) async {
+    await FirebaseFirestore.instance.runTransaction((transaction) async {
+      DocumentSnapshot gameDoc = await _gamesCollection.doc(gameId).get();
+      if (!gameDoc.exists) {
+        throw Exception('Game does not exist!');
+      }
+
+      transaction.update(_gamesCollection.doc(gameId), {'chat': chat});
+    });
+  }
+
   Future<void> updateWinnerAndEndGame(
       String gameId, String winner, String loser) async {
     await _gamesCollection.doc(gameId).update({
@@ -57,6 +68,18 @@ class GameService {
   Stream<Game> streamGameById(String gameId) {
     return _gamesCollection.doc(gameId).snapshots().map((doc) {
       return Game.fromFirestore(doc);
+    });
+  }
+
+  Future<void> updateTargetNumbersAndResetGame(
+      String gameId, String targetNumber1, String targetNumber2) async {
+    await _gamesCollection.doc(gameId).update({
+      'targetNumber1': targetNumber1,
+      'targetNumber2': targetNumber2,
+      'trials': [],
+      'winner': '-',
+      'losser': '-',
+      'status': 'Accepted'
     });
   }
 }

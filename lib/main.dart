@@ -46,7 +46,8 @@ class MyApp extends StatelessWidget {
         ),
         GoRoute(
           path: '/gameScreen',
-          builder: (context, state) => GameScreen(game: state.extra as Game),
+          builder: (context, state) => GameScreen(
+              game: state.extra as Game, requestSender: state.extra as String),
         ),
         GoRoute(
           path: '/home',

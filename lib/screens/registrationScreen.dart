@@ -3,6 +3,7 @@ import 'package:game_app/models/userModel.dart';
 import 'package:game_app/screens/LoginScreen.dart';
 import 'package:game_app/services/userService.dart';
 import 'package:game_app/widgets/myTextField.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class RegistrationScreen extends StatefulWidget {
@@ -21,17 +22,24 @@ class _RegisterPageState extends State<RegistrationScreen> {
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final userService = UserService();
+  bool _isRegistering = false;
 
   void saveUser(User user) async {
+    setState(() {
+      _isRegistering = true;
+    });
+
     try {
       await userService.saveUser(user);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('User saved successfully')),
-      );
+      Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${e.toString()}')),
       );
+    } finally {
+      setState(() {
+        _isRegistering = false;
+      });
     }
   }
 
@@ -92,6 +100,8 @@ class _RegisterPageState extends State<RegistrationScreen> {
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your username';
+                      } else if (value.contains('-') || value.contains('_')) {
+                        return '- and _ are not allowed to use!';
                       }
                       return null;
                     },
@@ -128,37 +138,50 @@ class _RegisterPageState extends State<RegistrationScreen> {
                   ),
                   SizedBox(height: 30),
                   SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        if (_formKey.currentState!.validate()) {
-                          try {
-                            saveUser(User(
-                              id: _usernameController.text,
-                              firstName: _firstNameController.text,
-                              lastName: _lastNameController.text,
-                              userName: _usernameController.text,
-                              password: _passwordController.text,
-                            ));
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error: ${e.toString()}')),
-                            );
-                          }
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        backgroundColor: Colors.blue,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: Text(
-                        'Register',
-                        style: TextStyle(fontSize: 18, color: Colors.white),
-                      ),
-                    ),
+                    child: _isRegistering
+                        ? CircularProgressIndicator()
+                        : SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                if (_formKey.currentState!.validate()) {
+                                  try {
+                                    saveUser(User(
+                                      id: _usernameController.text,
+                                      firstName: _firstNameController.text,
+                                      lastName: _lastNameController.text,
+                                      userName: _usernameController.text
+                                          .toLowerCase(),
+                                      password: _passwordController.text,
+                                    ));
+                                    _firstNameController.clear();
+                                    _lastNameController.clear();
+                                    _usernameController.clear();
+                                    _passwordController.clear();
+                                    _confirmPasswordController.clear();
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          content:
+                                              Text('Error: ${e.toString()}')),
+                                    );
+                                  }
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                padding: EdgeInsets.symmetric(vertical: 16),
+                                backgroundColor: Colors.blue,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: Text(
+                                'Register',
+                                style: TextStyle(
+                                    fontSize: 18, color: Colors.white),
+                              ),
+                            ),
+                          ),
                   ),
                   SizedBox(height: 20),
                   Row(

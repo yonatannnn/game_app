@@ -18,6 +18,7 @@ class GameTrial extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('here are ${trialNumber} -');
     return FutureBuilder<String>(
       future: _getUsername(),
       builder: (context, snapshot) {

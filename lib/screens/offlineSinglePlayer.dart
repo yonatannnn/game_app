@@ -16,6 +16,8 @@ class _SinglePlayerOfflineGameScreenState
   late String un;
   List<String> trials = [];
   final TextEditingController _guessController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  bool _isGuessInputVisible = false;
 
   @override
   void initState() {
@@ -66,16 +68,17 @@ class _SinglePlayerOfflineGameScreenState
         children: [
           Expanded(
             child: ListView.builder(
+              controller: _scrollController,
               itemCount: trials.length,
               itemBuilder: (context, index) {
-                String trialNumber = trials[index];
+                String trialNumber = trials[trials.length - 1 - index];
                 int correctNumbers =
                     _calculateCorrectNumbers(trialNumber, targetNumber);
                 int correctlyPlacedNumbers =
                     _calculateCorrectlyPlacedNumbers(trialNumber, targetNumber);
 
                 return GameTrial(
-                  trialNumber: '${un}_${targetNumber}',
+                  trialNumber: '${un}_${trialNumber}',
                   index: index,
                   correctNumbers: correctNumbers,
                   correctlyPlacedNumbers: correctlyPlacedNumbers,
@@ -83,25 +86,61 @@ class _SinglePlayerOfflineGameScreenState
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              style: TextStyle(color: Colors.white),
-              controller: _guessController,
-              keyboardType: TextInputType.number,
-              maxLength: 5,
-              maxLines: 1,
-              decoration: InputDecoration(
-                labelText: 'Enter 5-digit Guess',
-                border: OutlineInputBorder(),
-              ),
+          Visibility(
+            visible: _isGuessInputVisible,
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 8.0),
+                  child: TextField(
+                    style: TextStyle(color: Colors.white),
+                    controller: _guessController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 5,
+                    maxLines: 1,
+                    decoration: InputDecoration(
+                      labelText: 'Enter 5-digit Guess',
+                      labelStyle: TextStyle(color: Colors.white),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.white),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blue),
+                      ),
+                      contentPadding: EdgeInsets.symmetric(
+                          vertical: 10.0, horizontal: 12.0),
+                      isDense: true,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.only(bottom: 5.0),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _submitGuess(context, _guessController.text);
+                      FocusScope.of(context).unfocus();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 10.0, vertical: 12.0),
+                    ),
+                    child: Text('Submit Guess'),
+                  ),
+                ),
+              ],
             ),
           ),
-          ElevatedButton(
+          IconButton(
+            icon: Icon(
+              _isGuessInputVisible ? Icons.visibility_off : Icons.visibility,
+              color: Colors.white,
+            ),
             onPressed: () {
-              _submitGuess(context, _guessController.text);
+              setState(() {
+                _isGuessInputVisible = !_isGuessInputVisible;
+              });
             },
-            child: Text('Submit Guess'),
           ),
         ],
       ),
@@ -150,9 +189,6 @@ class _SinglePlayerOfflineGameScreenState
 
     await prefs.setStringList('trials', trials);
 
-    // Check end game condition if needed
-    // For offline, manage game completion based on trials locally
-
     int num1 = _calculateCorrectNumbers(guess, targetNumber);
     int num2 = _calculateCorrectlyPlacedNumbers(guess, targetNumber);
 
@@ -163,7 +199,6 @@ class _SinglePlayerOfflineGameScreenState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Congratulations! You guessed the number!')),
       );
-      // Optionally reset game here or provide other actions
     }
   }
 

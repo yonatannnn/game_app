@@ -17,6 +17,7 @@ class AboutPage extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+        iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
         backgroundColor: Colors.blue,
       ),
@@ -42,25 +43,25 @@ class AboutPage extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 24.0),
+          SizedBox(height: 35.0),
           _buildGameModeSection(
             title: 'Offline Games',
             description:
                 'Practice the Number Guessing Game offline to improve your skills.',
           ),
-          SizedBox(height: 8.0),
+          SizedBox(height: 35.0),
           _buildGameModeSection(
             title: 'Online Single Player',
             description:
                 'Compete with others online by scoring points in the Number Guessing Game.',
           ),
-          SizedBox(height: 8.0),
+          SizedBox(height: 35.0),
           _buildGameModeSection(
-            title: 'Online Multiplayer',
+            title: 'Online Two Players',
             description:
                 'Challenge a friend in real-time multiplayer matches of the Number Guessing Game.',
           ),
-          SizedBox(height: 24.0),
+          SizedBox(height: 35.0),
           Text(
             'Contact the Developer',
             style: GoogleFonts.openSans(
@@ -77,6 +78,21 @@ class AboutPage extends StatelessWidget {
             },
             child: Text(
               'Telegram @lijaleme',
+              style: GoogleFonts.openSans(
+                fontSize: 16,
+                color: Colors.blue,
+                decoration: TextDecoration.underline,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          SizedBox(height: 8.0),
+          GestureDetector(
+            onTap: () {
+              _launchInstagram();
+            },
+            child: Text(
+              'Instagram @yonathan_a_zewdie',
               style: GoogleFonts.openSans(
                 fontSize: 16,
                 color: Colors.blue,
@@ -117,9 +133,8 @@ class AboutPage extends StatelessWidget {
     );
   }
 
-  // Method to launch Telegram link
   void _launchTelegram() async {
-    const url = 'https://t.me/lijaleme'; // Replace with your Telegram link
+    const url = 'https://t.me/lijaleme';
     try {
       if (await canLaunch(url)) {
         await launch(url);
@@ -128,7 +143,19 @@ class AboutPage extends StatelessWidget {
       }
     } catch (e) {
       print('Error launching URL: $e');
-      // Handle error as needed, e.g., show a dialog or log the error
+    }
+  }
+
+  void _launchInstagram() async {
+    const url = 'https://www.instagram.com/yonathan_a_zewdie/';
+    try {
+      if (await canLaunch(url)) {
+        await launch(url);
+      } else {
+        throw 'Could not launch $url';
+      }
+    } catch (e) {
+      print('Error launching URL: $e');
     }
   }
 }

@@ -21,16 +21,23 @@ class UserService {
   }
 
   Future<User?> findUserById(String id) async {
+    String Id = id.toLowerCase();
     try {
-      final docRef = _firestore.collection(collectionName).doc(id);
+      final docRef = _firestore.collection(collectionName).doc(Id);
       final response = await docRef.get();
       if (response.exists) {
         return User.fromMap(response.data() as Map<String, dynamic>);
-      } else {
-        throw Exception('usernot Found');
       }
     } catch (e) {
-      throw Exception('${e.toString()}');
+      throw Exception('User not found');
     }
+  }
+
+  Stream<List<User>> fetchUsers() {
+    return _firestore.collection(collectionName).snapshots().map((snapshot) {
+      return snapshot.docs
+          .map((doc) => User.fromMap(doc.data() as Map<String, dynamic>))
+          .toList();
+    });
   }
 }
